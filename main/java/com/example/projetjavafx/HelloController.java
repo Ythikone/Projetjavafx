@@ -19,8 +19,6 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class HelloController extends HelloApplication{
     @FXML
@@ -48,18 +46,18 @@ public class HelloController extends HelloApplication{
 
     protected ObservableList<Cle> listCle;
 
-    public List<Cle> laliste = new ArrayList<>();
+    public ObservableList<Cle> laliste = FXCollections.observableArrayList();
 
-     public  static void main(String[] args){
+
+    public  static void main(String[] args){
 //
          launch(args);
     }
     @Override
     public void start(Stage primaryStage) throws IOException, SQLException {
+
         liste = new ComboBox<>();
         liste.setPromptText("Sélectionnez une clé");
-        liste.setItems(listCle);
-        listCle = FXCollections.observableArrayList(getTteCle());
         try {
             Label colorLabel = new Label("Couleur :");
             coulCle = new TextField();
@@ -80,9 +78,7 @@ public class HelloController extends HelloApplication{
                 }
             });
 
-//            addButton.setOnAction(e -> addKey());
-//            updateButton.setOnAction(e -> updateKey());
-//            deleteButton.setOnAction(e -> deleteKey());
+
 
             GridPane gridPane = new GridPane();
             gridPane.setHgap(10);
@@ -96,14 +92,16 @@ public class HelloController extends HelloApplication{
             Scene scene = new Scene(gridPane, 400, 200);
             primaryStage.setScene(scene);
             primaryStage.setTitle("Gestion des clés");
-            listCle.addAll(getTteCle());
+            listCle = FXCollections.observableArrayList();
+            listCle.setAll(getTteCle());
+            liste.setItems(listCle);
             primaryStage.show();
 
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-    private List<Cle> getTteCle() throws SQLException {
+    private ObservableList<Cle> getTteCle() throws SQLException {
 
 
             Connection connexion = DriverManager.getConnection(URL, LOGIN, PASSWORD);
@@ -116,8 +114,9 @@ public class HelloController extends HelloApplication{
 
                     String couleurCle = res1.getString("couleur");
                     String ouvertureCle = res1.getString("ouverture");
-                    Cle cle1 = new Cle(numCle, couleurCle, ouvertureCle);
-                    laliste.add(cle1);
+                    Cle cle = new Cle(numCle, couleurCle, ouvertureCle);
+                    laliste.add(cle);
+                    System.out.println(numCle+ couleurCle+ ouvertureCle);
 
 
                 }
@@ -184,7 +183,9 @@ public class HelloController extends HelloApplication{
 
     }
 
-    public void onModifButtonClick(ActionEvent actionEvent) {
+    @FXML
+    public void onModifButtonClick() {
+
     }
 
     @FXML
