@@ -175,7 +175,6 @@ public class HelloController extends HelloApplication{
 
         }
         catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -185,7 +184,32 @@ public class HelloController extends HelloApplication{
 
     @FXML
     public void onModifButtonClick() {
+        Cle selectedCle = liste.getSelectionModel().getSelectedItem();
+        if (selectedCle != null) {
+            try {
+                Connection connexion = DriverManager.getConnection(URL, LOGIN, PASSWORD);
 
+                String req = "UPDATE cle SET couleur = ?, ouverture = ? WHERE numero = ?";
+                PreparedStatement stmt = connexion.prepareStatement(req);
+                stmt.setString(1, coulCle.getText());
+                stmt.setString(2, ouvertureCle.getText());
+                stmt.setInt(3, selectedCle.getNumero());
+                int rowsUpdated = stmt.executeUpdate();
+
+                if (rowsUpdated > 0) {
+                    showAlert(Alert.AlertType.INFORMATION, "Modification réussie", "La clé a été modifiée avec succès.");
+                    // Rafraîchir la liste des clés après la modification
+                    refreshKeyList();
+                } else {
+                    showAlert(Alert.AlertType.ERROR, "Erreur de modification", "La clé n'a pas pu être modifiée.");
+                }
+
+            } catch (SQLException e) {
+                showAlert(Alert.AlertType.ERROR, "Erreur de base de données", "Une erreur s'est produite lors de la modification de la clé.");
+            }
+        } else {
+            showAlert(Alert.AlertType.WARNING, "Sélection requise", "Veuillez sélectionner une clé à modifier.");
+        }
     }
 
     @FXML
@@ -206,5 +230,51 @@ public class HelloController extends HelloApplication{
     }
 
     public void onSuppButtonClick(ActionEvent actionEvent) {
+        Cle selectedCle = liste.getSelectionModel().getSelectedItem();
+        if (selectedCle != null) {
+            Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION, "Êtes-vous sûr de vouloir supprimer cette clé ?", ButtonType.YES, ButtonType.NO);
+            confirmationAlert.showAndWait();
+
+            if (confirmationAlert.getResult() == ButtonType.YES) {
+                try {
+                    Connection connexion = DriverManager.getConnection(URL, LOGIN, PASSWORD);
+
+                    String req = "DELETE FROM cle WHERE numero = ?";
+                    PreparedStatement stmt = connexion.prepareStatement(req);
+                    stmt.setInt(1, selectedCle.getNumero());
+                    int rowsDeleted = stmt.executeUpdate();
+
+                    if (rowsDeleted > 0) {
+                        showAlert(Alert.AlertType.INFORMATION, "Suppression réussie", "La clé a été supprimée avec succès.");
+                        // Rafraîchir la liste des clés après la suppression
+                        refreshKeyList();
+                    } else {
+                        showAlert(Alert.AlertType.ERROR, "Erreur de suppression", "La clé n'a pas pu être supprimée.");
+                    }
+
+                } catch (SQLException e) {
+                    showAlert(Alert.AlertType.ERROR, "Erreur de base de données", "Une erreur s'est produite lors de la suppression de la clé.");
+                }
+            }
+        } else {
+            showAlert(Alert.AlertType.WARNING, "Sélection requise", "Veuillez sélectionner une clé à supprimer.");
+        }
+    }
+
+    private void showAlert(Alert.AlertType alertType, String title, String content) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
+    private void refreshKeyList() {
+        try {
+            listCle.clear();
+            listCle.addAll(getTteCle());
+        } catch (SQLException e) {
+            showAlert(Alert.AlertType.ERROR, "Erreur de base de données", "Une erreur s'est produite lors du rafraîchissement de la liste des clés.");
+        }
     }
 }
