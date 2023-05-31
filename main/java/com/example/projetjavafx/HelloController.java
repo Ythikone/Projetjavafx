@@ -4,10 +4,14 @@ import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Modality;
@@ -16,8 +20,9 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-
 import java.sql.*;
+import java.util.ArrayList;
+
 public class HelloController {
     @FXML
     private TextField monID;
@@ -25,11 +30,56 @@ public class HelloController {
     private PasswordField monMdp;
 
     @FXML
-    protected void onHelloButtonClick() throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
-        String URL = "jdbc:mysql://172.19.0.9:3306/ProjetCle";
+    private TextField numCle;
 
-        String LOGIN = "phpmyadmin";
-        String PASSWORD = "0550002D";
+    @FXML
+    private TextField coulCle;
+
+    @FXML
+    private TextField ouvertureCle;
+
+    public String URL = "jdbc:mysql://172.19.0.27:3306/tpcle";
+
+    public String LOGIN = "phpmyadmin";
+
+    public String PASSWORD = "0550002D";
+
+    private ComboBox<Cle> LISTE ;
+
+    final ObservableList<Cle> listCle = FXCollections.observableArrayList();
+
+
+
+     public  void main(String[] args)throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
+         try {
+             ArrayList<Cle> laliste = new ArrayList<Cle>();
+
+             Connection connexion = DriverManager.getConnection(URL, LOGIN, PASSWORD);
+
+             Statement stmt = connexion.createStatement();
+             String req = "SELECT * FROM cle";
+             ResultSet res1 = stmt.executeQuery(req);
+             while(res1.next()){
+                String numCle = res1.getString("numero");
+
+                String coleurCle = res1.getString("couleur");
+                String ouvertureCle = res1.getString("ouverture");
+                Cle cle1= new Cle(Integer.parseInt(numCle),coleurCle, ouvertureCle);
+                 listCle.add(cle1);
+                 LISTE.setItems(listCle);
+
+             }
+         }
+         catch (SQLException e) {
+             throw new RuntimeException(e);
+         }
+    }
+    @FXML
+    protected void onHelloButtonClick() throws NoSuchAlgorithmException, NoSuchProviderException, IOException {
+
+
+
+
         try {
 
             Connection connexion = DriverManager.getConnection(URL, LOGIN, PASSWORD);
@@ -71,9 +121,36 @@ public class HelloController {
                 alert.showAndWait();
             }
 
-    }
+        }
         catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
+
+    public void onSearchButtonClick(ActionEvent actionEvent) {
+
     }
+
+    public void onModifButtonClick(ActionEvent actionEvent) {
+    }
+
+    @FXML
+    protected void onAddButtonClick()throws NoSuchAlgorithmException, NoSuchProviderException, IOException  {
+        try {
+            Cle cle = new Cle(Integer.parseInt(numCle.getText()),coulCle.getText(),ouvertureCle.getText());
+            Connection connexion = DriverManager.getConnection(URL, LOGIN, PASSWORD);
+
+            Statement stmt = connexion.createStatement();
+            String req = "INSERT INTO cle (numero, couleur, ouverture) VALUES (" + cle.getNumero() + ", '" + cle.getCouleur() + "', '" + cle.getOuverture() + "')";
+            stmt.executeUpdate(req);
+
+
+        }
+        catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void onSuppButtonClick(ActionEvent actionEvent) {
+    }
+}
